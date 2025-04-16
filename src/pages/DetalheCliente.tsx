@@ -30,7 +30,6 @@ interface Transportadora {
   observacao?: string;
   redespacho?: string;
   cidadeDest?: string;
-
 }
 
 interface ItemNota {
@@ -65,7 +64,7 @@ function DetalheCliente() {
       );
 
       const pedidosFiltrados = pedidosPendentesResponse.data.Result.filter(
-        (pedido: any) => pedido["Status Aprov."] === "N"
+        (pedido: any) => pedido["Status Aprov."] == "N" && pedido["Status Frete"] == "Aguardando aprovação de frete"
       );
 
       setPedidosPendentes(pedidosFiltrados[0] || null);
@@ -237,9 +236,9 @@ function DetalheCliente() {
 
   useEffect(() => {
     if (Number(totalPesoBruto) > 0 && Number(totalNota) > 0) {
-      if (pedidosPendentes?.["Status Cot"] === "8") {
+      if (pedidosPendentes?.["Status Cot"] == "8" && pedidosPendentes["Status Aprov."] == "N" && pedidosPendentes["Status Frete"] == "Aguardando aprovação de frete") {
         listaCotacoes();
-      } else {
+      } else if (pedidosPendentes?.["Status Aprov."] == "N" && pedidosPendentes?.["Status Frete"] == "Aguardando aprovação de frete") {
         listaTransportadoras();
       }
     }
@@ -273,7 +272,6 @@ function DetalheCliente() {
                   <div>
                     <p className="dark:text-gray-100"><strong>Nro. Pedido: </strong> {pedidosPendentes["Nro. pedido"]} </p>
                     <p className="dark:text-gray-100"><strong>Valor: </strong> {pedidosPendentes["Vlr. Nota"]} </p>
-
 
                     <div className="space-y-2 mt-2 sm:max-h-[50vh] overflow-auto sm:p-2">
                       {transportadoras ? (
