@@ -190,16 +190,49 @@ function DetalheCliente() {
   };
 
   const [loadingAprova, setIsLoadingAprova] = useState(false);
+
+  // const onConfirm = async (nunota: number) => {
+
+  //   setIsLoadingAprova(true);
+  //   try {
+  //     const response = await axios.put(
+  //       `https://sub.tractb2b.com.br/EcPlan-1.0_FR/api/VendorAt/AprovPedidosPend/${nunota}/${transpSelecionada}/${valorFrete}`
+  //     );
+  //     if (response.status === 200) {
+  //       addToast("success", "Transpostadora aprovada com sucesso!");
+  //       window.location.reload()
+  //     } else {
+  //       console.error("Erro ao aprovar pedido:", response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Erro ao aprovar pedido:", error);
+  //   } finally {
+  //     setIsLoadingAprova(false);
+  //   }
+  // };
+
   const onConfirm = async (nunota: number) => {
+    if (transpSelecionada != 0) {
+      setMsg("")
+    }
+
+    const data = {
+      nunota: nunota,
+      transpSelecionada: transpSelecionada,
+      valorFrete: valorFrete,
+      msg: msg
+    }
 
     setIsLoadingAprova(true);
     try {
       const response = await axios.put(
-        `https://sub.tractb2b.com.br/EcPlan-1.0_FR/api/VendorAt/AprovPedidosPend/${nunota}/${transpSelecionada}/${valorFrete}`
+        `https://sub.tractb2b.com.br/EcPlan-1.0_FR/api/VendorAt/AprovPedidosPendMsg`, data
       );
       if (response.status === 200) {
         addToast("success", "Transpostadora aprovada com sucesso!");
+        setMsg("")
         window.location.reload()
+
       } else {
         console.error("Erro ao aprovar pedido:", response.data);
       }
@@ -244,13 +277,69 @@ function DetalheCliente() {
     }
   }, [totalPesoBruto, totalNota, pedidosPendentes]);
 
+  const mostrarFormulario =
+    pedidosPendentes?.["Status Cot"] === "8" &&
+    pedidosPendentes["Status Aprov."] === "N" &&
+    pedidosPendentes["Status Frete"] === "Aguardando aprovação de frete";
+
+  const [msg, setMsg] = useState("")
+
+
+  const [loadingMsg, setLoadingMsg] = useState(false);
+
+  const EnviarMsg = async () => {
+    const data = {
+      nunota: pedidosPendentes?.["Nro. pedido"],
+      msg: msg
+    }
+    setLoadingMsg(true)
+    try {
+      const response = await axios.put(
+        `https://sub.tractb2b.com.br/EcPlan-1.0_FR/api/VendorAt/EnviarMensagemFrete`, data
+      );
+
+      if (response.status === 200) {
+        console.log("Msg enviada")
+
+      } else {
+        console.error("Erro ao enviar mensagem:", response.data);
+      }
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+    } finally {
+      setMsg("")
+      setLoadingMsg(false);
+    }
+
+  }
+
+  const refazerCotacao = async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await axios.put(
+        `https://sub.tractb2b.com.br/EcPlan-1.0_FR/api/VendorAt/RequestMaisCots/${pedidosPendentes?.["Nro. pedido"]}`
+      );
+
+      if (response.status === 200) {
+        console.log("Pedido reenviado para cotação:", response.data);
+        window.location.reload()
+      } else {
+        console.error("Erro ao reenviar pedido para cotação:", response.data);
+      }
+    } catch (error) {
+      console.error("Erro ao reenviar pedido para cotação:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   return (
     <DefaultLayout>
       <div className="fixed bottom-0 right-0 mb-2 mr-6">
         {toasts.map((toast) => (
-          <Toast
+          <Toast 
             key={toast.id}
             type={toast.type}
             message={toast.message}
@@ -272,6 +361,55 @@ function DetalheCliente() {
                   <div>
                     <p className="dark:text-gray-100"><strong>Nro. Pedido: </strong> {pedidosPendentes["Nro. pedido"]} </p>
                     <p className="dark:text-gray-100"><strong>Valor: </strong> {pedidosPendentes["Vlr. Nota"]} </p>
+
+                    {mostrarFormulario ? (
+                      <div className="mt-5">
+                        <button onClick={() => refazerCotacao()} className="mb-5 inline-flex items-center mt-2 py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800">
+                          Solicitar outra cotação
+                        </button>
+
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            EnviarMsg();
+                          }}
+                        >
+                          <div className="w-full mb-4 border border-gray-400 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                            <div className="px-2 py-2 bg-white rounded-t-lg dark:bg-gray-800">
+                              <textarea
+                                id="comment"
+                                className="w-full px-0 text-sm text-gray-900 bg-white border-0 dark:bg-gray-800 focus:outline-none dark:text-white dark:placeholder-gray-400"
+                                placeholder="Digite aqui uma mensagem..."
+                                required
+                                value={msg}
+                                onChange={(e) => setMsg(e.target.value)}
+                              ></textarea>
+                            </div>
+                            <div className="flex items-center justify-between px-3 py-2 border-t dark:border-gray-600 border-gray-300">
+                              <button
+                                type="submit"
+                                disabled={loadingMsg}
+                                className="inline-flex items-center py-2.5 px-4 text-xs font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
+                              >
+                                {loadingMsg ? "Enviando..." : "Enviar"}
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    ) : (
+                      transpSelecionada === 0 && (
+                        <textarea
+                          className="mt-4 w-full p-2 rounded-lg border border-gray-500 dark:border-white dark:bg-gray-700 dark:text-white"
+                          placeholder="Digite uma observação sobre a escolha da transportadora..."
+                          rows={2}
+                          value={msg}
+                          onChange={(e) => setMsg(e.target.value)}
+                        />
+                      )
+                    )}
+
+
 
                     <div className="space-y-2 mt-2 sm:max-h-[50vh] overflow-auto sm:p-2">
                       {transportadoras ? (
