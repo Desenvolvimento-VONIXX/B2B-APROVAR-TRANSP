@@ -339,7 +339,7 @@ function DetalheCliente() {
     <DefaultLayout>
       <div className="fixed bottom-0 right-0 mb-2 mr-6">
         {toasts.map((toast) => (
-          <Toast 
+          <Toast
             key={toast.id}
             type={toast.type}
             message={toast.message}
@@ -361,6 +361,9 @@ function DetalheCliente() {
                   <div>
                     <p className="dark:text-gray-100"><strong>Nro. Pedido: </strong> {pedidosPendentes["Nro. pedido"]} </p>
                     <p className="dark:text-gray-100"><strong>Valor: </strong> {pedidosPendentes["Vlr. Nota"]} </p>
+                    <p className="dark:text-gray-100"><strong>CNPJ/CPF: </strong> {cnpj} </p>
+                    <p className="dark:text-gray-100"><strong>Nome Parc: </strong> {pedidosPendentes?.["Nome Parc."]} </p>
+                    
 
                     {mostrarFormulario ? (
                       <div className="mt-5">
