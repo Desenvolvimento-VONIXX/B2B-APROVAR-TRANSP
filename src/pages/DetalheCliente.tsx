@@ -56,12 +56,24 @@ function DetalheCliente() {
 
 
   const [pedidosPendentes, setPedidosPendentes] = useState<PedidoPendentes | null>(null);
+  const [aguardandoCotacao, setAguardandoCotacao] = useState(false);
 
   const fetchData = async () => {
     try {
       const pedidosPendentesResponse = await axios.get(
         `https://sub.tractb2b.com.br/EcPlan-1.0_FR/api/VendorAt/PedidosPend/${cnpj}`
       );
+
+      // const existeAguardandoCotacao = pedidosPendentesResponse.data.Result;
+      const existeAguardandoCotacao = pedidosPendentesResponse.data.Result.some(
+        (pedido: any) =>
+          pedido["Status Aprov."] === "N" &&
+          pedido["Status Frete"] === "Aguardando cotação"
+      );
+      if (existeAguardandoCotacao) {
+        setAguardandoCotacao(true);
+      }
+
 
       const pedidosFiltrados = pedidosPendentesResponse.data.Result.filter(
         (pedido: any) => pedido["Status Aprov."] == "N" && pedido["Status Frete"] == "Aguardando aprovação de frete"
@@ -230,6 +242,7 @@ function DetalheCliente() {
       );
       if (response.status === 200) {
         addToast("success", "Transpostadora aprovada com sucesso!");
+        setAguardandoCotacao(false)
         setMsg("")
         window.location.reload()
 
@@ -363,7 +376,7 @@ function DetalheCliente() {
                     <p className="dark:text-gray-100"><strong>Valor: </strong> {pedidosPendentes["Vlr. Nota"]} </p>
                     <p className="dark:text-gray-100"><strong>CNPJ/CPF: </strong> {cnpj} </p>
                     <p className="dark:text-gray-100"><strong>Nome Parc: </strong> {pedidosPendentes?.["Nome Parc."]} </p>
-                    
+
 
                     {mostrarFormulario ? (
                       <div className="mt-5">
@@ -523,7 +536,18 @@ function DetalheCliente() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex justify-center dark:text-gray-100">Você não possui nenhum pedido pendente de aprovação.</div>
+                  <>
+                    {aguardandoCotacao ? (
+                      <div className="flex justify-center dark:text-gray-100">
+                        Há pedidos aguardando cotação.
+                      </div>
+                    ) : (
+                      <div className="flex justify-center dark:text-gray-100">
+                        Você não possui nenhum pedido pendente de aprovação.
+                      </div>
+                    )}
+
+                  </>
                 )}
               </div>
             )}
