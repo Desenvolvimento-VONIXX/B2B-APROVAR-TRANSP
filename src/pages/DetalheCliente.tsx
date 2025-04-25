@@ -432,7 +432,7 @@ function DetalheCliente() {
                         [
                           ...(pedidosPendentes["Status Cot"] == "8"
                             ? []
-                            : [{ nomeTransportadora: "NENHUMA OPÇÃO", valorFrete: 0, codigoParceiro: 0, prazo: "-", observacao: "", redespacho: "", cidadeDest: "" }]),
+                            : [{ nomeTransportadora: "SOLICITAR COTAÇÃO", valorFrete: 0, codigoParceiro: 0, prazo: "-", observacao: "", redespacho: "", cidadeDest: "" }]),
                           ...transportadoras,
                         ].map((transportadora, index) => (
                           <div
@@ -472,7 +472,7 @@ function DetalheCliente() {
 
                             <p className="text-gray-700 dark:text-gray-300 text-sm">
                               <strong>Frete:</strong>{" "}
-                              {transportadora.nomeTransportadora === "NENHUMA OPÇÃO" ||
+                              {transportadora.nomeTransportadora === "SOLICITAR COTAÇÃO" ||
                                 transportadora.valorFrete === 0
                                 ? "-"
                                 : `R$ ${transportadora.valorFrete?.toLocaleString("pt-BR", {
